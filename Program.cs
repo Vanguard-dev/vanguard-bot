@@ -45,6 +45,9 @@ namespace vanguard_bot
             
             switch (message.Content.ToLower())
             {
+                case "!vanguard":
+                    AssignRole(message, "Vanguard");
+                    break;
                 case "!operations":
                     AssignRole(message, "Operations");
                     break;
