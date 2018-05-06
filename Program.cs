@@ -19,12 +19,12 @@ namespace vanguard_bot
             _client.Ready += ReadyAsync;
             _client.MessageReceived += MessageReceivedAsync;
 
-            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("token"));
+            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("VANGUARD_BOT_DISCORD_TOKEN"));
             await _client.StartAsync();
             await Task.Delay(-1);
         }
 
-        private Task LogAsync(LogMessage log)
+        private static Task LogAsync(LogMessage log)
         {
             Console.WriteLine(log.ToString());
             
@@ -43,36 +43,41 @@ namespace vanguard_bot
             if (message.Author.Id == _client.CurrentUser.Id)
                 return;
             
-            switch (message.Content)
+            switch (message.Content.ToLower())
             {
-                case "!Operations":
+                case "!operations":
                     AssignRole(message, "Operations");
                     break;
-                case "!Exile":
+                case "!exile":
                     AssignRole(message, "Exile");
                     break;
-                case "!Antistasi":
+                case "!antistasi":
                     AssignRole(message, "Antistasi");
                     break;
-                
                 default:
-                    //message.DeleteAsync();
+                    if (message.Channel.Name == "tags")
+                    {
+                        await message.DeleteAsync();
+                    }
                     break;
             }
         }
 
-        private async void AssignRole(SocketMessage message, string roleName)
+        private static async void AssignRole(SocketMessage message, string roleName)
         {
-            SocketGuildUser guildUser = message.Author as SocketGuildUser;
-            SocketRole guildRole = guildUser.Guild.Roles.First(role => role.Name == roleName);
+            var guildUser = message.Author as SocketGuildUser;
+            var guildRole = guildUser?.Guild.Roles.First(role => role.Name == roleName);
 
-            if (guildRole == null || guildUser == null) return;
+            if (guildRole == null)
+            {
+                return;
+            }
 
             await guildUser.AddRoleAsync(guildRole);
-
-            guildUser.SendMessageAsync($"Role {guildRole.Name} added succesfully");
-
-            message.DeleteAsync();
+            await Task.WhenAll(
+                guildUser.SendMessageAsync($"Role {guildRole.Name} added succesfully"),
+                message.DeleteAsync()
+            );
         }
     }
 }
