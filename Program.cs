@@ -27,7 +27,7 @@ namespace vanguard_bot
         private static Task LogAsync(LogMessage log)
         {
             Console.WriteLine(log.ToString());
-            
+
             return Task.CompletedTask;
         }
 
@@ -42,7 +42,7 @@ namespace vanguard_bot
         {
             if (message.Author.Id == _client.CurrentUser.Id)
                 return;
-            
+
             switch (message.Content.ToLower())
             {
                 case "!vanguard":
@@ -62,6 +62,7 @@ namespace vanguard_bot
                     {
                         await message.DeleteAsync();
                     }
+
                     break;
             }
         }
@@ -76,11 +77,20 @@ namespace vanguard_bot
                 return;
             }
 
-            await guildUser.AddRoleAsync(guildRole);
-            await Task.WhenAll(
-                guildUser.SendMessageAsync($"Role {guildRole.Name} added succesfully"),
-                message.DeleteAsync()
-            );
+            //Remove role
+            if (guildUser.Roles.Any(role => role.Name == guildRole.Name))
+            {
+                await guildUser.RemoveRoleAsync(guildRole);
+                guildUser.SendMessageAsync($"Role {guildRole.Name} removed!");
+            }
+            //Add role
+            else
+            {
+                await guildUser.AddRoleAsync(guildRole);
+                guildUser.SendMessageAsync($"Role {guildRole.Name} added!");
+            }
+
+            message.DeleteAsync();
         }
     }
 }
